@@ -1,0 +1,191 @@
+library(tidyverse)
+library(lubridate)
+> library(readr)
+> q1_2022 <- read_csv("GoogleDataAnalytics/q1_2022.csv")
+
+
+
+> colnames(q3_2022)
+ [1] "ride_id"            "rideable_type"      "started_at"        
+ [4] "ended_at"           "start_station_name" "start_station_id"  
+ [7] "end_station_name"   "end_station_id"     "start_lat"         
+[10] "start_lng"          "end_lat"            "end_lng"           
+[13] "member_casual"     
+> colnames(q4_2022)
+ [1] "ride_id"            "rideable_type"      "started_at"        
+ [4] "ended_at"           "start_station_name" "start_station_id"  
+ [7] "end_station_name"   "end_station_id"     "start_lat"         
+[10] "start_lng"          "end_lat"            "end_lng"           
+[13] "member_casual"     
+> colnames(q2_2022)
+ [1] "ride_id"            "rideable_type"      "started_at"        
+ [4] "ended_at"           "start_station_name" "start_station_id"  
+ [7] "end_station_name"   "end_station_id"     "start_lat"         
+[10] "start_lng"          "end_lat"            "end_lng"           
+[13] "member_casual"     
+> colnames(q1_2022)
+ [1] "ride_id"            "rideable_type"      "started_at"        
+ [4] "ended_at"           "start_station_name" "start_station_id"  
+ [7] "end_station_name"   "end_station_id"     "start_lat"         
+[10] "start_lng"          "end_lat"            "end_lng"           
+[13] "member_casual"
+
+#binded all 12 csv flat files after reviewing the columns to ensure integrity using rbind>  
+all_trips3<-rbind(q1_2022,q2_2022,q3_2022,q4_2022).
+
+#Rename columns q4_2022<-rename(q4_2022,trip_id=ride_id,start_time=started_at,end_time=ended_at,usertype=member_casual)
+> q3_2022<-rename(q3_2022,trip_id=ride_id,start_time=started_at,end_time=ended_at,usertype=member_casual)
+> View(q3_2022)
+> > q2_2022<-rename(q2_2022,trip_id=ride_id,start_time=started_at,end_time=ended_at,usertype=member_casual)
+Error: unexpected '>' in ">"
+> q2_2022<-rename(q2_2022,trip_id=ride_id,start_time=started_at,end_time=ended_at,usertype=member_casual)
+> q1_2022<-rename(q1_2022,trip_id=ride_id,start_time=started_at,end_time=ended_at,usertype=member_casual)
+
+#Inspect dataframes
+str(q1_2022)
+str(q2_2022)
+
+#Convert ride id datatypes
+> q4_2022<-mutate(q4_2022,trip_id=as.character(trip_id),rideable_type=as.character(rideable_type))
+> q3_2022<-mutate(q3_2022,trip_id=as.character(trip_id),rideable_type=as.character(rideable_type))
+> q2_2022<-mutate(q2_2022,trip_id=as.character(trip_id),rideable_type=as.character(rideable_type))
+> q1_2022<-mutate(q1_2022,trip_id=as.character(trip_id),rideable_type=as.character(rideable_type))
+
+#step 3. Cleaning Data
+table(all_trips$usertype)
+
+casual member 
+578565 900141 
+
+#Add column dates level of details month, day, and year for each ride
+all_trips_df$date<-as.Date(all_trips_df$start_time)
+all_trips_df$month<-format(as.Date(all_trips_df$date),"%m")
+all_trips_df$date<-as.Date(all_trips_df$start_time) all_trips_df$month<-format(as.Date(all_trips_df$date),"%m")
+all_trips_df$day<-format(as.Date(all_trips_df$date),"%d")
+all_trips_df$year<-format(as.Date(all_trips_df$date),"%Y")
+all_trips_df$day_of_week<-format(as.Date(all_trips_df$date),"%A")
+str(all_trips_df)
+
+#ride lenght calculation all_trips_df$ride_length<-difftime(all_trips_df$end_time,all_trips_df$start_time)
+
+#Convert ride length to numeric
+
+> is.factor(trips_df$ride_length) #checking datatype status
+[1] FALSE
+> is.numeric(trips_df$ride_length)
+[1] FALSE
+> trips_df$ride_length<-as.numeric(as.character(trips_df$ride_length))
+> is.numeric(trips_df$ride_length)#checking datatype status
+[1] TRUE
+
+#Removing bad data-entries when bike was taking out for quality checks data reduced from 1,478,780 to 1,478,670
+> trips_df_v2<-trips_df[!(trips_df$start_station_name=="HQ QR"|trips_df$ride_length<0),]
+> str(trips_df_v2)
+
+#STEP 4: Conduct Descriptive analysis
+
+
+
+#Removing null values	  
+> all_trips_cleaned<-trips_df_v2
+> all_trips_cleaned <- na.omit(all_trips_cleaned)
+> all_trips_cleaned
+
+#Datafram reduced to 1,150,177 entries with 19 columns
+
+#New Descriptive analysis in seconds
+> mean(all_trips_cleaned$ride_length)#Average ride taken
+[1] 1072.863
+> median(all_trips_cleaned$ride_length)#midpoint number
+[1] 637
+> min(all_trips_cleaned$ride_length)#shortest ride taken
+[1] 0
+> max(all_trips_cleaned$ride_length)#Longest  ride taken
+[1] 1971512
+
+> summary(all_trips_cleaned$ride_length)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      0     366     637    1073    1141 1971512 
+	  
+	  > trip_v3<-all_trips_cleaned
+#Average ride time per day for each members and casual users
+ aggregate(trip_v3$ride_length~trip_v3$usertype+trip_v3$day_of_week,FUN = mean)
+ > trip_v3$day_of_week<-ordered(trip_v3$day_of_week,levels=c("Sunday","Monday","Tuesday","Wednessday","Thursday","Friday","Saturday"))
+ 
+ 
+ #Aggregate ride types 
+ > aggregate(trip_v3$ride_length ~ trip_v3$usertype, FUN = median)
+  trip_v3$usertype trip_v3$ride_length
+1           casual                 894
+2           member                 523
+> 
+> 
+> aggregate(trip_v3$ride_length ~ trip_v3$usertype, FUN = max)
+  trip_v3$usertype trip_v3$ride_length
+1           casual             1971512
+2           member               89575
+> 
+> 
+> aggregate(trip_v3$ride_length ~ trip_v3$usertype, FUN = mean)
+  trip_v3$usertype trip_v3$ride_length
+1           casual           1637.5127
+2           member            719.7899
+> 
+> 
+> aggregate(trip_v3$ride_length ~ trip_v3$usertype, FUN = min)
+  trip_v3$usertype trip_v3$ride_length
+1           casual                   0
+2           member                   0
+ 
+ 
+ 
+ #riders data by type and weekday
+ trip_v3 %>% 
++     mutate(day_of_week = wday(start_time, label = TRUE)) %>%  
++     group_by(usertype, day_of_week) %>%  
++     summarise(number_of_rides = n()							
++               ,average_duration = mean(ride_length)) %>% 	
++     arrange(usertype, day_of_week)							
+# A tibble: 14 x 4
+# Groups:   usertype [2]
+   usertype day_of_week number_of_rides average_duration
+   <chr>    <ord>                 <int>            <dbl>
+ 1 casual   Sun                   79286            1933.
+ 2 casual   Mon                   49636            1675.
+ 3 casual   Tue                   40051            1329.
+ 4 casual   Wed                   50323            1408.
+ 5 casual   Thu                   61304            1454.
+ 6 casual   Fri                   61161            1510.
+ 7 casual   Sat                  100743            1813.
+ 8 member   Sun                   75015             825.
+ 9 member   Mon                   93932             700.
+10 member   Tue                  102037             662.
+11 member   Wed                  119267             682.
+12 member   Thu                  126043             694.
+13 member   Fri                  100051             708.
+14 member   Sat                   91328             816.
+> 
+#Number of rides visualization
+trip_v3 %>% 
+    mutate(day_of_week = wday(start_time, label = TRUE)) %>% 
+    group_by(usertype, day_of_week) %>% 
+    summarise(number_of_rides = n())%>% 
+    arrange(usertype, day_of_week)  %>% 
+    ggplot(aes(x = day_of_week, y = number_of_rides, fill = usertype)) +
+    geom_col(position = "dodge")
+ 
+ #Average duration of rides by weekday
+ 
+trip_v3 %>% 
++     mutate(day_of_week = wday(start_time, label = TRUE)) %>% 
++     group_by(usertype, day_of_week) %>% 
++     summarise(average_duration = mean(ride_length)) %>% 
++     arrange(usertype, day_of_week)  %>% 
++     ggplot(aes(x = day_of_week, y = average_duration, fill = usertype)) +
++     geom_col(position = "dodge")
+
+#COUNT Number of average trips by day and usertypes
+counts <- aggregate(trip_v3$ride_length ~ trip_v3$usertype + trip_v3$day_of_week, FUN = mean)
+ 
+#COUNT total number of trips by days in (seconds)
+ 
